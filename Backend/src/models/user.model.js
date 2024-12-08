@@ -5,40 +5,44 @@ import bcrypt from "bcrypt"
 const userSchema = mongoose.Schema({
 
     fullName:{
-        type:string,
+        type:String,
         required:true,
         trim:true,
         index:true
     },
+    username:{
+        type:String,
+        required:true,
+        unique:true
+    },
     email:{
-        type:string,
+        type:String,
         required:true,
         unique:true
     },
     password:{
-        type:string,
+        type:String,
         required:[true, "Password is required"],
     },
-    avatar:{
-        type:string,
-        required:true,
-    },
+    // avatar:{
+    //     type:String,
+    //     required:true,
+    // },
 
 
 
 },
 {
-    timeStamp:true
+   timestamps:true
 })
 
 
 
-userSchema.pre("save", async function (req, res, next){
-
-if(!this.isModifide("password")) return next();
-this.password = bcrypt.hash(this.password, 10)
-next()
-})
+userSchema.pre("save", async function (next) {
+    if (!this.isModified("password")) return next();
+    this.password = await bcrypt.hash(this.password, 10); // Ensure `await` is used here
+    next();
+});
 
 
 userSchema.methods.ispasswordCorrect = async function (password) {
@@ -48,7 +52,7 @@ userSchema.methods.ispasswordCorrect = async function (password) {
 
 
 userSchema.methods.generateAccessToken = async function () {
-    jwt.sign(
+    return jwt.sign(
         {
             _id:this._id
         },
@@ -62,7 +66,7 @@ userSchema.methods.generateAccessToken = async function () {
 
 userSchema.methods.generatRefreshToken = async function () {
 
-    jwt.sign(
+    return jwt.sign(
         {
             _id:this._id
         },
@@ -76,4 +80,4 @@ userSchema.methods.generatRefreshToken = async function () {
 
 
 
-export default User = mongoose.model('User', userSchema)
+export const  User = mongoose.model('User', userSchema)
